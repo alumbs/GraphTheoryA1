@@ -8,12 +8,89 @@ public class A1
 		
 	public static void main(String [] args)
 	{
+		A1.Graph G = readInGraph();
+		performCrossOverAlg(G);
+	}
+	
+	private static void performCrossOverAlg(Graph G)
+	{
+		HashMap<Integer, Vertex> path = new HashMap<Integer, Vertex>();
+		 //u and v vertices adjacent to startVertex
+		Vertex adjacentU = null, adjacentV = null, startVertex = null;
+		Vertex tempVertex;
+		
+		if(G == null)
+			return;
+			
+		System.out.println("Crossover alg started");
+		
+		//Pick a random starting vertex
+		int randVertex = (int)(Math.random() * G.getNumVertices()) + 1;
+		System.out.println("Random starting vertex = " + randVertex);
+		
+		startVertex = G.vertices.get(randVertex);
+		
+		if(startVertex == null){
+			System.out.println("ERROR: Vertex " + randVertex + " not found");
+			return;
+		}
+		
+		//Add the startVertex to the path
+		path.put(startVertex.vertexIndex, startVertex);
+		
+		//Now find two adjacent vertices to the startVertex
+		//and add them to the path if they exist
+		if(startVertex.adjacentVertices.size() > 0){
+			adjacentU = startVertex.adjacentVertices.remove(0);
+			path.put(adjacentU.vertexIndex, adjacentU);
+		}
+		
+		if(startVertex.adjacentVertices.size() > 0){
+			adjacentV = startVertex.adjacentVertices.remove(0);
+			path.put(adjacentV.vertexIndex, adjacentV);
+		}
+		
+		//Extend both adjacent vertices 
+		//until we can't extend them any further
+		while(adjacentU != null &&
+				adjacentU.adjacentVertices.size() > 0)
+		{
+			tempVertex = adjacentU.adjacentVertices.remove(0);
+			
+			if(!path.containsKey(tempVertex.vertexIndex))
+			{
+				path.put(tempVertex.vertexIndex, tempVertex);
+				adjacentU = tempVertex;
+			}
+		}
+		
+		while(adjacentV != null &&
+				adjacentV.adjacentVertices.size() > 0)
+		{
+			tempVertex = adjacentV.adjacentVertices.remove(0);
+			
+			if(!path.containsKey(tempVertex.vertexIndex))
+			{
+				path.put(tempVertex.vertexIndex, tempVertex);
+				adjacentV = tempVertex;
+			}
+		}
+		
+		//Print out u and v
+		System.out.println("adjacentU = " + adjacentU.vertexIndex);
+		System.out.println("adjacentV = " + adjacentV.vertexIndex);
+		System.out.println("Total num vertices in path = " + path.size());
+		
+	}
+	
+	private static Graph readInGraph()
+	{
 		int numVerticesOfGraph = 0;
 		Scanner sc;
 		String fileName , line, graphName = null;
 		String [] splitTemp;
 		A1 a1 = new A1();
-		A1.Graph G;
+		A1.Graph G = null;
 		BufferedReader br;
 		
 		//Read in the name of the file containing
@@ -113,6 +190,8 @@ public class A1
 			System.out.println("Exception caught: " + e);
 			System.exit(EXIT_FAILURE);
 		}
+		
+		return G;
 	}
 	
 	private class Graph
@@ -135,12 +214,17 @@ public class A1
 			
 			//Create the array of vertices for this graph
 			vertices = new HashMap<Integer, Vertex>();
-		}		
+		}	
+		
+		public int getNumVertices()
+		{
+			return this.numVertices;
+		}	
 	}
 	
 	private class Vertex
 	{
-		private int vertexIndex;
+		public int vertexIndex;
 		public ArrayList<Vertex> adjacentVertices;
 		
 		public Vertex(int index, int numAdjacentVertices)

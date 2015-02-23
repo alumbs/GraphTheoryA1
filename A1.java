@@ -33,7 +33,8 @@ public class A1
 	//Returns the longest path found
 	private static int performCrossOverAlg(Graph G)
 	{
-		HashMap<Integer, Integer> path = new HashMap<Integer, Integer>();
+		A1 a1 = new A1();
+		MyIntegerHashMap path = a1.new MyIntegerHashMap();
 		int pathIndex = G.numVertices;
 		int uIndex = pathIndex, vIndex = pathIndex;
 		boolean crossoverFound = true;
@@ -146,7 +147,7 @@ public class A1
 			boolean pathExtended = false;
 			
 			//adjacentU
-			for(Vertex tempW : adjacentU.adjacentVertices)
+			for(Vertex tempW : adjacentU.adjacentVertices.items)
 			{
 				//print("For vertices adjacent to " + adjacentU.vertexIndex +
 					//" AdjVertex = " + tempW.vertexIndex);
@@ -167,7 +168,7 @@ public class A1
 				
 				//check all vertices adjacent to X not in the path
 				if(tempX != null)
-				for(Vertex tempZ : tempX.adjacentVertices)
+				for(Vertex tempZ : tempX.adjacentVertices.items)
 				{
 					//print("Adj vert = " +tempZ.vertexIndex+" for vert "+tempX.vertexIndex);
 					if(!path.containsValue(tempZ.vertexIndex))
@@ -175,8 +176,8 @@ public class A1
 						//System.out.println("Path Extension found: Vertex"+
 							//"= " + vertexXIndex +   + adjacentU.vertexIndex);
 						//extend the path
-						HashMap<Integer, Integer> newPath = 
-							new HashMap<Integer, Integer>();
+						MyIntegerHashMap newPath = 
+							a1.new MyIntegerHashMap();
 						int newUIndex = uIndex;
 						
 						//Add Z-X-U-W-V to the new path
@@ -222,7 +223,7 @@ public class A1
 			//print("Path not extended, try AdjV");
 			
 			//adjacentV
-			for(Vertex tempW : adjacentV.adjacentVertices)
+			for(Vertex tempW : adjacentV.adjacentVertices.items)
 			{
 				//print("For vertices adjacent to " + adjacentV.vertexIndex +
 					//" AdjVertex = " + tempW.vertexIndex);
@@ -243,7 +244,7 @@ public class A1
 				
 				//check all vertices adjacent to Y not in the path
 				if(tempY != null)
-				for(Vertex tempZ : tempY.adjacentVertices)
+				for(Vertex tempZ : tempY.adjacentVertices.items)
 				{
 					//print("Adj vert = " +tempZ.vertexIndex+" for vert "+tempY.vertexIndex);
 					if(!path.containsValue(tempZ.vertexIndex))
@@ -252,8 +253,8 @@ public class A1
 						//print("Vertex added is: " + tempZ.vertexIndex);
 						
 						//extend the path
-						HashMap<Integer, Integer> newPath = 
-							new HashMap<Integer, Integer>();
+						MyIntegerHashMap newPath = 
+							a1.new MyIntegerHashMap();
 						int newUIndex = uIndex;
 						
 						//Add Z-Y-V-W-U to the new path
@@ -302,7 +303,7 @@ public class A1
 			//Else look for a crossover of order 1
 			//if found, extend P
 			uVertex = G.vertices.get(path.get(uIndex));
-			for(Vertex yVertex : uVertex.adjacentVertices)
+			for(Vertex yVertex : uVertex.adjacentVertices.items)
 			{
 				//print("For vertices adjacent to " + uVertex.vertexIndex +
 					//" AdjVertex = " + yVertex.vertexIndex);
@@ -334,7 +335,7 @@ public class A1
 					{
 						Vertex pVertex = G.vertices.get(path.get(pIndex));
 						
-						for(Vertex tempZ : pVertex.adjacentVertices)
+						for(Vertex tempZ : pVertex.adjacentVertices.items)
 						{
 							//If no, then that means the current vertex
 							//is adjacent to something not on the path
@@ -347,8 +348,8 @@ public class A1
 								if(pIndex <= prevXIndex)
 								{
 									//Do Z-P-X-V-Y-U-(P-1)
-									HashMap<Integer, Integer> newPath = 
-										new HashMap<Integer, Integer>();
+									MyIntegerHashMap newPath = 
+										a1.new MyIntegerHashMap();
 									int newUIndex = uIndex;
 									
 									//Add Z to the new path
@@ -394,8 +395,8 @@ public class A1
 								else //pIndex is > prevXIndex
 								{
 									//Do Z-P-Y-U-X-V-(P+1)
-									HashMap<Integer, Integer> newPath = 
-										new HashMap<Integer, Integer>();
+									MyIntegerHashMap newPath = 
+										a1.new MyIntegerHashMap();
 									int newUIndex = uIndex;
 									
 									//Add Z and P to the new path
@@ -469,7 +470,7 @@ public class A1
 		System.out.println(s);
 	}
 	
-	public static void printMap(HashMap<Integer, Integer> map, int start, int end)
+	public static void printMap(MyIntegerHashMap map, int start, int end)
 	{		
 		print("Printing Path");
 		for(int i = start; i <= end; i++)
@@ -587,7 +588,7 @@ public class A1
 	{
 		private String graphName;
 		private int numVertices;
-		public HashMap<Integer, Vertex> vertices;
+		public MyHashMap vertices;
 		
 		public Graph(String name, int numVert) throws Exception
 		{
@@ -602,24 +603,97 @@ public class A1
 			numVertices = numVert;
 			
 			//Create the array of vertices for this graph
-			vertices = new HashMap<Integer, Vertex>();
+			vertices = new MyHashMap();
 		}	
 		
 		public int getNumVertices()
 		{
 			return this.numVertices;
 		}	
+		
+		private class MyHashMap
+		{
+			public int[] keys;
+			public Vertex[] values;
+			private int count;
+			
+			public MyHashMap()
+			{
+				keys = new int[1];
+				values = new Vertex[1];
+				count = 0;
+			}
+			
+			public boolean containsKey(int key)
+			{
+				boolean result = false;
+				for(int k : keys)
+				{
+					if(k == key)
+					{
+						result = true;
+						break;
+					}
+				}
+				return result;
+			}
+			
+			public void put(int key, Vertex value)
+			{
+				if(count == 0)
+				{
+					keys[count] = key;
+					values[count] = value;
+				}
+				else if(count == keys.length)
+				{
+					int[] newKeys = new int[count+1];
+					Vertex[] newValues = new Vertex[count+1];
+					
+					for(int i = 0; i < count; i++)
+					{
+						newKeys[i] = keys[i];
+						newValues[i] = values[i];
+					}
+					newKeys[count] = key;
+					newValues[count] = value;
+					
+					keys = newKeys;
+					values = newValues;
+				}
+				else
+				{
+					print("MyHashMap Put Function Crashed -RECTIFY");
+				}
+				
+				count++;
+			}
+			
+			public Vertex get(int index)
+			{
+				Vertex result = null;
+				for(int i = 0; i < keys.length; i++)
+				{
+					if(keys[i] == index){
+						result = values[i];
+						break;
+					}
+				}
+				
+				return result;
+			}
+		}
 	}
 	
 	private class Vertex
 	{
 		public int vertexIndex;
-		public ArrayList<Vertex> adjacentVertices;
+		public MyArrayList adjacentVertices;
 		
 		public Vertex(int index, int numAdjacentVertices)
 		{
 			vertexIndex = index;
-			adjacentVertices = new ArrayList<Vertex>(numAdjacentVertices);
+			adjacentVertices = new MyArrayList(numAdjacentVertices);
 		}
 		
 		public boolean addAdjacentVertex(Vertex vertex)
@@ -632,7 +706,7 @@ public class A1
 			boolean hasVertex = false;
 			if(adjacentVertices != null)
 			{
-				for(Vertex v : adjacentVertices)
+				for(Vertex v : adjacentVertices.items)
 				{
 					if(v.vertexIndex == wantedVertexIndex)
 					{
@@ -659,6 +733,180 @@ public class A1
 			{
 				System.out.println("No adjacent vertices");
 			}
+		}
+		
+		private class MyArrayList
+		{
+			public Vertex[] items;
+			private int count;
+			
+			public MyArrayList(int size)
+			{
+				if(size > 0)
+					items = new Vertex[size];
+				else
+					MyArrayList();
+					
+				count = 0;
+			}
+			
+			public void MyArrayList()
+			{
+				items = new Vertex[1];
+				count = 0;
+			}
+			
+			public int size()
+			{
+				return count;
+			}
+			
+			public boolean add(Vertex v)
+			{
+				if(v == null){
+					System.out.println("Null vertex passed");
+					return false;
+				}
+					
+				if(count == 0){
+					items[count] = v;
+				}
+				else{
+					if(count <= items.length)
+					{
+						Vertex[] newItems = new Vertex[count+1];
+						for(int i = 0; i < count; i++)
+						{
+							newItems[i] = items[i];
+						}
+						newItems[count] = v;
+						
+						items = newItems;
+					}
+					else
+					{
+						print("COUNT > ITEMS LENGTH");
+					}
+				}
+					
+				count++;
+				
+				return true;
+			}
+			
+			public Vertex get(int index)
+			{
+				//print("Index = " + index + " Count=" + count);
+				Vertex result = null;
+				if(index >= 0 && index < count)
+				{
+					result = items[index];
+				}
+				
+				return result;
+			}
+		}
+	}
+	
+	private class MyIntegerHashMap
+	{
+		public int[] keys;
+		public int[] values;
+		private int count;
+		
+		public MyIntegerHashMap()
+		{
+			keys = new int[1];
+			values = new int[1];
+			count = 0;
+		}
+		
+		public int[]keySet()
+		{
+			return keys;
+		}
+		
+		public int[] values()
+		{
+			return values;
+		}
+		
+		public int size()
+		{
+			return count;
+		}
+		
+		public boolean containsValue(int value)
+		{
+			boolean result = false;
+			for(int v : values)
+			{
+				if(v == value)
+				{
+					result = true;
+					break;
+				}
+			}
+			return result;
+		}
+		
+		public boolean containsKey(int key)
+		{
+			boolean result = false;
+			for(int k : keys)
+			{
+				if(k == key)
+				{
+					result = true;
+					break;
+				}
+			}
+			return result;
+		}
+		
+		public void put(int key, int value)
+		{
+			if(count == 0)
+			{
+				keys[count] = key;
+				values[count] = value;
+			}
+			else if(count == keys.length)
+			{
+				int[] newKeys = new int[count+1];
+				int[] newValues = new int[count+1];
+				
+				for(int i = 0; i < count; i++)
+				{
+					newKeys[i] = keys[i];
+					newValues[i] = values[i];
+				}
+				newKeys[count] = key;
+				newValues[count] = value;
+				
+				keys = newKeys;
+				values = newValues;
+			}
+			else
+			{
+				print("MyHashMap Put Function Crashed -RECTIFY");
+			}
+			
+			count++;
+		}
+		
+		public int get(int index)
+		{
+			int result = -1;
+			for(int i = 0; i < keys.length; i++)
+			{
+				if(keys[i] == index){
+					result = values[i];
+					break;
+				}
+			}
+			
+			return result;
 		}
 	}
 }

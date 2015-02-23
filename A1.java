@@ -8,16 +8,22 @@ public class A1
 		
 	public static void main(String [] args)
 	{
-		A1.Graph G = readInGraph();
+		Graph G = readInGraph();
 		performCrossOverAlg(G);
 	}
 	
 	private static void performCrossOverAlg(Graph G)
 	{
-		HashMap<Integer, Vertex> path = new HashMap<Integer, Vertex>();
+		HashMap<Integer, Integer> path = new HashMap<Integer, Integer>();
+		HashMap<Integer, Integer> visitedVertices =
+			new HashMap<Integer, Integer>();
+		int pathIndex = G.numVertices;
+		int uIndex = pathIndex, vIndex = pathIndex;
+		boolean crossoverFound = true;
+		
 		 //u and v vertices adjacent to startVertex
 		Vertex adjacentU = null, adjacentV = null, startVertex = null;
-		Vertex tempVertex;
+		Vertex tempVertex, uVertex, vVertex;
 		
 		if(G == null)
 			return;
@@ -25,7 +31,8 @@ public class A1
 		System.out.println("Crossover alg started");
 		
 		//Pick a random starting vertex
-		int randVertex = (int)(Math.random() * G.getNumVertices()) + 1;
+		//int randVertex = (int)(Math.random() * G.getNumVertices()) + 1;
+		int randVertex = 9;
 		System.out.println("Random starting vertex = " + randVertex);
 		
 		startVertex = G.vertices.get(randVertex);
@@ -36,43 +43,76 @@ public class A1
 		}
 		
 		//Add the startVertex to the path
-		path.put(startVertex.vertexIndex, startVertex);
+		//Add it to position pathIndex incase it was the last vertex
+		// in the list
+		path.put(pathIndex, startVertex.vertexIndex);
 		
 		//Now find two adjacent vertices to the startVertex
 		//and add them to the path if they exist
 		if(startVertex.adjacentVertices.size() > 0){
-			adjacentU = startVertex.adjacentVertices.remove(0);
-			path.put(adjacentU.vertexIndex, adjacentU);
+			adjacentU = startVertex.adjacentVertices.get(0);
+			
+			//Decerement the uIndex for the next vertex to be 
+			//added to the left of vertex U
+			uIndex--;
+			
+			//Vertex U should be to the left 
+			path.put(uIndex, adjacentU.vertexIndex);
 		}
 		
-		if(startVertex.adjacentVertices.size() > 0){
-			adjacentV = startVertex.adjacentVertices.remove(0);
-			path.put(adjacentV.vertexIndex, adjacentV);
+		if(startVertex.adjacentVertices.size() > 1){
+			adjacentV = startVertex.adjacentVertices.get(1);
+			
+			//Increment the vIndex for the next vertex to be 
+			//added to the right of vertex V
+			vIndex++;
+			
+			//Vertex V should be to the right 
+			path.put(vIndex, adjacentV.vertexIndex);
 		}
 		
 		//Extend both adjacent vertices 
 		//until we can't extend them any further
+		int count = 0;
 		while(adjacentU != null &&
-				adjacentU.adjacentVertices.size() > 0)
+				adjacentU.adjacentVertices.size() > 0
+				&& count < adjacentU.adjacentVertices.size())
 		{
-			tempVertex = adjacentU.adjacentVertices.remove(0);
+			tempVertex = adjacentU.adjacentVertices.get(count);
 			
-			if(!path.containsKey(tempVertex.vertexIndex))
+			if(!path.containsValue(tempVertex.vertexIndex))
 			{
-				path.put(tempVertex.vertexIndex, tempVertex);
+				//print("Vertex="+tempVertex.vertexIndex + " count=" + count);
+				uIndex--;
+				path.put(uIndex, tempVertex.vertexIndex);
 				adjacentU = tempVertex;
+				count = 0;
+			}
+			else
+			{
+				count++;
 			}
 		}
 		
+		count = 0;
 		while(adjacentV != null &&
-				adjacentV.adjacentVertices.size() > 0)
+				adjacentV.adjacentVertices.size() > 0 &&
+				count < adjacentV.adjacentVertices.size())
 		{
-			tempVertex = adjacentV.adjacentVertices.remove(0);
+			tempVertex = adjacentV.adjacentVertices.get(count);
 			
-			if(!path.containsKey(tempVertex.vertexIndex))
+			if(!path.containsValue(tempVertex.vertexIndex))
 			{
-				path.put(tempVertex.vertexIndex, tempVertex);
+				print("Vertex V added to path= "+ tempVertex.vertexIndex +
+					" At index: " + (vIndex+1) + " for vertex " + adjacentV.vertexIndex);
+				vIndex++;
+				path.put(vIndex, tempVertex.vertexIndex);
 				adjacentV = tempVertex;
+				count = 0;
+			}
+			else
+			{
+				count++;
 			}
 		}
 		
@@ -80,7 +120,336 @@ public class A1
 		System.out.println("adjacentU = " + adjacentU.vertexIndex);
 		System.out.println("adjacentV = " + adjacentV.vertexIndex);
 		System.out.println("Total num vertices in path = " + path.size());
+		System.out.println("Path contains " + path.values());
 		
+		//Main loop
+		while(crossoverFound)
+		{
+			print("Crossover started");
+			int vertexXIndex=0, vertexWIndex=0, vertexYIndex=0;
+			boolean pathExtended = false;
+			
+			//adjacentU
+			for(Vertex tempW : adjacentU.adjacentVertices)
+			{
+				print("For vertices adjacent to " + adjacentU.vertexIndex +
+					" AdjVertex = " + tempW.vertexIndex);
+					
+				//Get the prev vertex to w on the path
+				Vertex tempX = null;
+				for(Integer key : path.keySet())
+				{
+					if(path.get(key) == tempW.vertexIndex){
+						vertexWIndex = key;
+						vertexXIndex = key-1;
+						tempX = G.vertices.get(path.get(vertexXIndex));
+						break; //stop this inner for-loop
+					}
+				}
+				
+				print("Found prev vertex " + tempX.vertexIndex);
+				
+				//check all vertices adjacent to X not in the path
+				if(tempX != null)
+				for(Vertex tempZ : tempX.adjacentVertices)
+				{
+					print("Adj vert = " +tempZ.vertexIndex+" for vert "+tempX.vertexIndex);
+					if(!path.containsValue(tempZ.vertexIndex))
+					{
+						System.out.println("Path Extension found: Vertex"+
+							"= " + vertexXIndex +   + adjacentU.vertexIndex);
+						//extend the path
+						HashMap<Integer, Integer> newPath = 
+							new HashMap<Integer, Integer>();
+						int newUIndex = uIndex;
+						
+						//Add Z-X-U-W-V to the new path
+						newPath.put(newUIndex, tempZ.vertexIndex);
+						newUIndex++;
+						newPath.put(newUIndex, tempX.vertexIndex);
+						newUIndex++;
+						
+						//Add all vertices from vertex X to vertex U
+						vertexXIndex--;						
+						while(vertexXIndex >= uIndex)
+						{
+							newPath.put(newUIndex, path.get(vertexXIndex));
+							newUIndex++;
+							vertexXIndex--;
+						}
+						
+						//Add all vertices from vertex W to vertex V
+						while(vertexWIndex <= vIndex)
+						{
+							newPath.put(newUIndex, path.get(vertexWIndex));
+							newUIndex++;
+							vertexWIndex++;
+						}
+						
+						//vIndex has changed due to the extension
+						vIndex = newUIndex - 1;
+						
+						pathExtended = true;
+						path = newPath;
+						break;
+					}
+				}
+				
+				if(pathExtended)
+					break;
+			}
+			
+			//if the path was extended, break out and start again
+			if(pathExtended)
+				break;
+				
+			print("Path not extended, try AdjV");
+			
+			//adjacentV
+			for(Vertex tempW : adjacentV.adjacentVertices)
+			{
+				print("For vertices adjacent to " + adjacentV.vertexIndex +
+					" AdjVertex = " + tempW.vertexIndex);
+					
+				//Get the next vertex to w on the path
+				Vertex tempY = null;
+				for(Integer key : path.keySet())
+				{
+					if(path.get(key) == tempW.vertexIndex){
+						vertexWIndex = key;
+						vertexYIndex = key+1;
+						tempY = G.vertices.get(path.get(vertexYIndex));
+						break; //stop this inner for-loop
+					}
+				}
+				
+				print("Found next vertex " + tempY.vertexIndex);
+				
+				//check all vertices adjacent to Y not in the path
+				if(tempY != null)
+				for(Vertex tempZ : tempY.adjacentVertices)
+				{
+					print("Adj vert = " +tempZ.vertexIndex+" for vert "+tempY.vertexIndex);
+					if(!path.containsValue(tempZ.vertexIndex))
+					{
+						print("Path extension found");
+						//extend the path
+						HashMap<Integer, Integer> newPath = 
+							new HashMap<Integer, Integer>();
+						int newUIndex = uIndex;
+						
+						//Add Z-Y-V-W-U to the new path
+						newPath.put(newUIndex, tempZ.vertexIndex);
+						newUIndex++;
+						newPath.put(newUIndex, tempY.vertexIndex);
+						newUIndex++;
+						
+						//Add all vertices from vertex Y to vertex V
+						vertexYIndex++;						
+						while(vertexYIndex <= vIndex)
+						{
+							newPath.put(newUIndex, path.get(vertexYIndex));
+							newUIndex++;
+							vertexYIndex++;
+						}
+						
+						//Add all vertices from vertex W to vertex U
+						while(vertexWIndex >= uIndex)
+						{
+							newPath.put(newUIndex, path.get(vertexWIndex));
+							newUIndex++;
+							vertexWIndex--;
+						}
+						
+						//vIndex has changed due to the extension
+						vIndex = newUIndex - 1;
+						
+						pathExtended = true;
+						path = newPath;
+						break;
+					}
+				}
+				
+				//if the path was extended, break out and start again
+				if(pathExtended)
+					break;
+			}
+			
+			//if the path was extended, break out and start again
+			if(pathExtended)
+				break;
+				
+			print("Path not extended, try looking for crossover");
+			
+			//Else look for a crossover of order 1
+			//if found, extend P
+			uVertex = G.vertices.get(path.get(uIndex));
+			for(Vertex yVertex : uVertex.adjacentVertices)
+			{
+				print("For vertices adjacent to " + uVertex.vertexIndex +
+					" AdjVertex = " + yVertex.vertexIndex);
+					
+				//Get the prev vertex to adjVertices on the path
+				Vertex prevX = null;
+				int yIndex = 0, prevXIndex =0;
+				for(Integer key : path.keySet())
+				{
+					if(path.get(key) == yVertex.vertexIndex){
+						yIndex = key;
+						prevXIndex = key-1;
+						prevX = G.vertices.get(path.get(prevXIndex));
+						break; //stop this inner for-loop
+					}
+				}
+				
+				//Check if the prev vertex is adjacent to vertex V
+				int tempVVertex = path.get(vIndex);
+				
+				//If yes then we have a crossover
+				if(prevX.containsAdjacentVertex(tempVVertex))
+				{
+					print("One vertex adj to U is also adj to V= "+prevX.vertexIndex);
+					//Go through all vertices on the path
+					//and see if it is adjacent to any vertices 
+					//not on the path - if yes, extend the Path
+					for(int pIndex = uIndex; pIndex <= vIndex; pIndex++)
+					{
+						Vertex pVertex = G.vertices.get(path.get(pIndex));
+						
+						for(Vertex tempZ : pVertex.adjacentVertices)
+						{
+							//If no, then that means the current vertex
+							//is adjacent to something not on the path
+							//So extend the path
+							if(!path.containsValue(tempZ.vertexIndex))
+							{
+								//extend the path - BUT we have 2 cases
+								//1: pt p is to the left of crossover
+								//2: pt p is to the right of crossover
+								if(pIndex < prevXIndex)
+								{
+									//Do Z-P-X-V-Y-U-(P-1)
+									HashMap<Integer, Integer> newPath = 
+										new HashMap<Integer, Integer>();
+									int newUIndex = uIndex;
+									
+									//Add Z to the new path
+									newPath.put(newUIndex, tempZ.vertexIndex);
+									newUIndex++;
+									
+									//Add all vertices from vertex P
+									// to vertex X
+									int tempPIndex = pIndex;						
+									while(tempPIndex <= prevXIndex)
+									{
+										newPath.put(newUIndex, path.get(tempPIndex));
+										newUIndex++;
+										tempPIndex++;
+									}
+									
+									//Add all vertices from vertex V 
+									//to vertex Y
+									int tempVIndex = vIndex;
+									while(tempVIndex >= yIndex)
+									{
+										newPath.put(newUIndex, path.get(tempVIndex));
+										newUIndex++;
+										tempVIndex--;
+									}
+									
+									//Add U - (P-1) vertices
+									int tempUIndex = uIndex;
+									while(tempUIndex <= pIndex-1)
+									{
+										newPath.put(newUIndex, path.get(tempUIndex));
+										newUIndex++;
+										tempUIndex++;
+									}
+									
+									//vIndex has changed due to the extension
+									vIndex = newUIndex - 1;
+									
+									pathExtended = true;
+									path = newPath;
+									break;
+								}
+								else //pIndex is > prevXIndex
+								{
+									//Do Z-P-Y-U-X-V-(P+1)
+									HashMap<Integer, Integer> newPath = 
+										new HashMap<Integer, Integer>();
+									int newUIndex = uIndex;
+									
+									//Add Z and P to the new path
+									newPath.put(newUIndex, tempZ.vertexIndex);
+									newUIndex++;
+																		
+									//Add P to Y 
+									int tempPIndex = pIndex;						
+									while(tempPIndex >= yIndex)
+									{
+										newPath.put(newUIndex, path.get(tempPIndex));
+										newUIndex++;
+										tempPIndex--;
+									}
+									
+									//Add U to X
+									int tempUIndex = uIndex;
+									while(tempUIndex <= prevXIndex)
+									{
+										newPath.put(newUIndex, path.get(tempUIndex));
+										newUIndex++;
+										tempUIndex++;
+									}
+									
+									//Add V to (P+1)
+									int tempVIndex = vIndex;
+									while(tempVIndex >= pIndex + 1)
+									{
+										newPath.put(newUIndex, path.get(tempVIndex));
+										newUIndex++;
+										tempVIndex--;
+									}
+									
+									//vIndex has changed due to the extension
+									vIndex = newUIndex - 1;
+									
+									pathExtended = true;
+									path = newPath;
+									break;
+								}
+							}
+							
+							//if the path was extended, break out and start again
+							if(pathExtended)
+								break;
+						}
+						
+						//if the path was extended, break out and start again
+						if(pathExtended)
+							break;
+					}
+				}
+				
+				//if the path was extended, break out and start again
+				if(pathExtended)
+					break;
+			}
+			
+			//Finally if no extension was performed,
+			//quit the loop
+			if(!pathExtended)
+				crossoverFound = false;
+		}		
+		
+		System.out.println("After Extension:: Total num vertices" + 
+							" in path = " + path.size());
+		System.out.println("Path contains " + path.values());
+	}
+	
+	public static void print(String s)
+	{
+		System.out.println(s);
 	}
 	
 	private static Graph readInGraph()
@@ -236,6 +605,24 @@ public class A1
 		public boolean addAdjacentVertex(Vertex vertex)
 		{
 			return adjacentVertices.add(vertex);
+		}
+		
+		public boolean containsAdjacentVertex(int wantedVertexIndex)
+		{
+			boolean hasVertex = false;
+			if(adjacentVertices != null)
+			{
+				for(Vertex v : adjacentVertices)
+				{
+					if(v.vertexIndex == wantedVertexIndex)
+					{
+						hasVertex = true;
+						break;
+					}
+				}
+			}
+			
+			return hasVertex;
 		}
 		
 		public void printAdjacentVertices()

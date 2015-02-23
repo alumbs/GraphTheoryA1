@@ -8,15 +8,32 @@ public class A1
 		
 	public static void main(String [] args)
 	{
-		Graph G = readInGraph();
-		performCrossOverAlg(G);
+		int maxLength = 0;
+		String[] files = {"Thomassen.txt", "NonHam24.txt","Mid7.txt", "Mid9.txt"};
+		
+		for(String filename : files)
+		{
+			Graph G = readInGraph(filename);
+			maxLength = 0;
+			
+			for(int j = 0; j < 10; j++)
+			{
+				int tempMax = performCrossOverAlg(G);
+				if(tempMax > maxLength){
+					maxLength = tempMax;
+					print("This is Max= " + maxLength+"\n");
+				}
+			}
+			
+			System.out.println("Graph Name: " + G.graphName);
+			System.out.println("Max Graph Path: " + maxLength);
+		}
 	}
 	
-	private static void performCrossOverAlg(Graph G)
+	//Returns the longest path found
+	private static int performCrossOverAlg(Graph G)
 	{
 		HashMap<Integer, Integer> path = new HashMap<Integer, Integer>();
-		HashMap<Integer, Integer> visitedVertices =
-			new HashMap<Integer, Integer>();
 		int pathIndex = G.numVertices;
 		int uIndex = pathIndex, vIndex = pathIndex;
 		boolean crossoverFound = true;
@@ -26,20 +43,20 @@ public class A1
 		Vertex tempVertex, uVertex, vVertex;
 		
 		if(G == null)
-			return;
+			return 0;
 			
-		System.out.println("Crossover alg started");
+		//System.out.println("Crossover alg started");
 		
 		//Pick a random starting vertex
-		//int randVertex = (int)(Math.random() * G.getNumVertices()) + 1;
-		int randVertex = 9;
-		System.out.println("Random starting vertex = " + randVertex);
+		int randVertex = (int)(Math.random() * G.getNumVertices()) + 1;
+		//int randVertex = 1;
+		System.out.println("Starting vertex = " + randVertex);
 		
 		startVertex = G.vertices.get(randVertex);
 		
 		if(startVertex == null){
 			System.out.println("ERROR: Vertex " + randVertex + " not found");
-			return;
+			return 0;
 		}
 		
 		//Add the startVertex to the path
@@ -103,8 +120,8 @@ public class A1
 			
 			if(!path.containsValue(tempVertex.vertexIndex))
 			{
-				print("Vertex V added to path= "+ tempVertex.vertexIndex +
-					" At index: " + (vIndex+1) + " for vertex " + adjacentV.vertexIndex);
+				//print("Vertex V added to path= "+ tempVertex.vertexIndex +
+					//" At index: " + (vIndex+1) + " for vertex " + adjacentV.vertexIndex);
 				vIndex++;
 				path.put(vIndex, tempVertex.vertexIndex);
 				adjacentV = tempVertex;
@@ -117,23 +134,22 @@ public class A1
 		}
 		
 		//Print out u and v
-		System.out.println("adjacentU = " + adjacentU.vertexIndex);
-		System.out.println("adjacentV = " + adjacentV.vertexIndex);
-		System.out.println("Total num vertices in path = " + path.size());
-		System.out.println("Path contains " + path.values());
+		//System.out.println("adjacentU = " + adjacentU.vertexIndex);
+		//System.out.println("adjacentV = " + adjacentV.vertexIndex);
+		//System.out.println("Total num vertices in path = " + path.size());
+		//System.out.println("Path contains " + path.values());
 		
 		//Main loop
 		while(crossoverFound)
 		{
-			print("Crossover started");
 			int vertexXIndex=0, vertexWIndex=0, vertexYIndex=0;
 			boolean pathExtended = false;
 			
 			//adjacentU
 			for(Vertex tempW : adjacentU.adjacentVertices)
 			{
-				print("For vertices adjacent to " + adjacentU.vertexIndex +
-					" AdjVertex = " + tempW.vertexIndex);
+				//print("For vertices adjacent to " + adjacentU.vertexIndex +
+					//" AdjVertex = " + tempW.vertexIndex);
 					
 				//Get the prev vertex to w on the path
 				Vertex tempX = null;
@@ -147,17 +163,17 @@ public class A1
 					}
 				}
 				
-				print("Found prev vertex " + tempX.vertexIndex);
+				//print("Found prev vertex " + tempX.vertexIndex);
 				
 				//check all vertices adjacent to X not in the path
 				if(tempX != null)
 				for(Vertex tempZ : tempX.adjacentVertices)
 				{
-					print("Adj vert = " +tempZ.vertexIndex+" for vert "+tempX.vertexIndex);
+					//print("Adj vert = " +tempZ.vertexIndex+" for vert "+tempX.vertexIndex);
 					if(!path.containsValue(tempZ.vertexIndex))
 					{
-						System.out.println("Path Extension found: Vertex"+
-							"= " + vertexXIndex +   + adjacentU.vertexIndex);
+						//System.out.println("Path Extension found: Vertex"+
+							//"= " + vertexXIndex +   + adjacentU.vertexIndex);
 						//extend the path
 						HashMap<Integer, Integer> newPath = 
 							new HashMap<Integer, Integer>();
@@ -201,15 +217,15 @@ public class A1
 			
 			//if the path was extended, break out and start again
 			if(pathExtended)
-				break;
+				continue;
 				
-			print("Path not extended, try AdjV");
+			//print("Path not extended, try AdjV");
 			
 			//adjacentV
 			for(Vertex tempW : adjacentV.adjacentVertices)
 			{
-				print("For vertices adjacent to " + adjacentV.vertexIndex +
-					" AdjVertex = " + tempW.vertexIndex);
+				//print("For vertices adjacent to " + adjacentV.vertexIndex +
+					//" AdjVertex = " + tempW.vertexIndex);
 					
 				//Get the next vertex to w on the path
 				Vertex tempY = null;
@@ -223,16 +239,18 @@ public class A1
 					}
 				}
 				
-				print("Found next vertex " + tempY.vertexIndex);
+				//print("Found next vertex " + tempY.vertexIndex);
 				
 				//check all vertices adjacent to Y not in the path
 				if(tempY != null)
 				for(Vertex tempZ : tempY.adjacentVertices)
 				{
-					print("Adj vert = " +tempZ.vertexIndex+" for vert "+tempY.vertexIndex);
+					//print("Adj vert = " +tempZ.vertexIndex+" for vert "+tempY.vertexIndex);
 					if(!path.containsValue(tempZ.vertexIndex))
 					{
-						print("Path extension found");
+						//print("Path extension found");
+						//print("Vertex added is: " + tempZ.vertexIndex);
+						
 						//extend the path
 						HashMap<Integer, Integer> newPath = 
 							new HashMap<Integer, Integer>();
@@ -277,17 +295,17 @@ public class A1
 			
 			//if the path was extended, break out and start again
 			if(pathExtended)
-				break;
+				continue;
 				
-			print("Path not extended, try looking for crossover");
+			//print("Path not extended, try looking for crossover");
 			
 			//Else look for a crossover of order 1
 			//if found, extend P
 			uVertex = G.vertices.get(path.get(uIndex));
 			for(Vertex yVertex : uVertex.adjacentVertices)
 			{
-				print("For vertices adjacent to " + uVertex.vertexIndex +
-					" AdjVertex = " + yVertex.vertexIndex);
+				//print("For vertices adjacent to " + uVertex.vertexIndex +
+					//" AdjVertex = " + yVertex.vertexIndex);
 					
 				//Get the prev vertex to adjVertices on the path
 				Vertex prevX = null;
@@ -306,9 +324,9 @@ public class A1
 				int tempVVertex = path.get(vIndex);
 				
 				//If yes then we have a crossover
-				if(prevX.containsAdjacentVertex(tempVVertex))
+				if(prevX != null && prevX.containsAdjacentVertex(tempVVertex))
 				{
-					print("One vertex adj to U is also adj to V= "+prevX.vertexIndex);
+					//print("One vertex adj to U is also adj to V= "+prevX.vertexIndex);
 					//Go through all vertices on the path
 					//and see if it is adjacent to any vertices 
 					//not on the path - if yes, extend the Path
@@ -326,7 +344,7 @@ public class A1
 								//extend the path - BUT we have 2 cases
 								//1: pt p is to the left of crossover
 								//2: pt p is to the right of crossover
-								if(pIndex < prevXIndex)
+								if(pIndex <= prevXIndex)
 								{
 									//Do Z-P-X-V-Y-U-(P-1)
 									HashMap<Integer, Integer> newPath = 
@@ -442,9 +460,8 @@ public class A1
 				crossoverFound = false;
 		}		
 		
-		System.out.println("After Extension:: Total num vertices" + 
-							" in path = " + path.size());
-		System.out.println("Path contains " + path.values());
+		printMap(path, uIndex, vIndex);
+		return path.size();
 	}
 	
 	public static void print(String s)
@@ -452,28 +469,31 @@ public class A1
 		System.out.println(s);
 	}
 	
-	private static Graph readInGraph()
+	public static void printMap(HashMap<Integer, Integer> map, int start, int end)
+	{		
+		print("Printing Path");
+		for(int i = start; i <= end; i++)
+		{
+			System.out.print(map.get(i) +" - ");
+		}
+		print("\n");
+	}
+	
+	private static Graph readInGraph(String fileName)
 	{
 		int numVerticesOfGraph = 0;
-		Scanner sc;
-		String fileName , line, graphName = null;
+		//Scanner sc;
+		String line, graphName = null;
 		String [] splitTemp;
 		A1 a1 = new A1();
 		A1.Graph G = null;
 		BufferedReader br;
 		
-		//Read in the name of the file containing
-		//the graph
-		System.out.println("Enter the filename");
-		
-		sc = new Scanner(System.in);
-		fileName = sc.next();
-		
 		if(fileName == null){
 			System.exit(EXIT_FAILURE);
 		}
 					
-		System.out.println("filename = " + fileName);
+		System.out.println("\nGraph Name = " + fileName);
 					
 		try{
 			br = new BufferedReader(new FileReader(fileName));
@@ -490,7 +510,7 @@ public class A1
 			
 			G = a1.new Graph(graphName, numVerticesOfGraph);
 			
-			while((line = br.readLine()) != null){
+			while((line = br.readLine()) != null && !line.isEmpty()){
 				//System.out.println("line = " + line);
 				splitTemp = line.split(" ");
 				String vertex = splitTemp[0].substring(1);//Remove the first char
@@ -549,7 +569,7 @@ public class A1
 				
 				//System.out.println("line = " + line);
 				//System.out.println("Splitline = " + vertex);
-				mainVertex.printAdjacentVertices();
+				//mainVertex.printAdjacentVertices();
 			}			
 		}
 		catch(Exception e)
